@@ -1,1 +1,3 @@
 ./data/out.conv
+__pycache__
+model

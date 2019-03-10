@@ -8,7 +8,7 @@ with open('./out.conv',encoding='UTF-8') as f:
 		if count % 2 == 1:
 			out2.writelines(line)
 		count += 1
-		if count == 2000:
+		if count == 40000:
 			break
 		
 	  

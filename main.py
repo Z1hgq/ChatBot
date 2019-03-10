@@ -47,8 +47,8 @@ def get_id_list_from(sentence):
 def get_train_set():
     global num_encoder_symbols, num_decoder_symbols
     train_set = []
-    with open('./samples/question', 'r') as question_file:
-        with open('./samples/answer', 'r') as answer_file:
+    with open('./data/question', 'r') as question_file:
+        with open('./data/answer', 'r') as answer_file:
             while True:
                 question = question_file.readline()
                 answer = answer_file.readline()
