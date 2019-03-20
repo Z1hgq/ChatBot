@@ -24,12 +24,12 @@ size = 8
 # 初始学习率
 init_learning_rate = 1
 # 在样本中出现频率超过这个值才会进入词表
-min_freq = 3
+min_freq = 1
 
 wordToken = word_token.WordToken()
 
 # 放在全局的位置，为了动态算出num_encoder_symbols和num_decoder_symbols
-max_token_id = wordToken.load_file_list(['./data/question', './data/answer'], min_freq)
+max_token_id = wordToken.load_file_list(['./data/Q', './data/A'], min_freq)
 num_encoder_symbols = max_token_id + 5
 num_decoder_symbols = max_token_id + 5
 
@@ -47,8 +47,8 @@ def get_id_list_from(sentence):
 def get_train_set():
     global num_encoder_symbols, num_decoder_symbols
     train_set = []
-    with open('./data/question', 'r') as question_file:
-        with open('./data/answer', 'r') as answer_file:
+    with open('./data/Q', 'r') as question_file:
+        with open('./data/A', 'r') as answer_file:
             while True:
                 question = question_file.readline()
                 answer = answer_file.readline()
@@ -175,7 +175,8 @@ def train():
 
         # 训练很多次迭代，每隔10次打印一次loss，可以看情况直接ctrl+c停止
         previous_losses = []
-        for step in range(20000):
+        step = 0
+        while True:
             sample_encoder_inputs, sample_decoder_inputs, sample_target_weights = get_samples(train_set, 1000)
             input_feed = {}
             for l in range(input_seq_len):
@@ -194,6 +195,7 @@ def train():
 
                 # 模型持久化
                 saver.save(sess, './model/demo')
+            step += 1
 
 
 def predict():

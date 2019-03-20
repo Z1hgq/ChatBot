@@ -1,3 +1,6 @@
 ./data/out.conv
 __pycache__
 model
+./data/xiaohuangji50w_nofenci.conv
+./data/question
+./data/answer
