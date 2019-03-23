@@ -4,3 +4,7 @@ model
 data/xiaohuangji50w_nofenci.conv
 data/question
 data/answer
+data/questionList
+data/answerList
+data/questionKeyList
+retrieval/data

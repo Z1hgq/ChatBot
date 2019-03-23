@@ -11,12 +11,14 @@ import jieba
 import sys
 import random
 import pickle
+import datetime
 
-filePath = './data/data'
+filePath = './data/xhj_data'
 questionListPath = './data/questionList'
 answerListPath = './data/answerList'
 questionKeyListPath = './data/questionKeyList'
 invertTablePath = './data/invertTable.bin'
+zh_vectorPath = './data/zh_vec.txt'
 
 #将数组写进文件
 def writeFile(filePath,arr):
@@ -37,14 +39,20 @@ def stopwordslist(filepath):
 #预处理 数据清洗 停用词 小写 去标点
 def clean_words(sentence):
     stopWords = stopwordslist('stopWords')
-    sentence_seged = jieba.cut(sentence.strip())
-    
-    outstr = ''
-    for word in sentence_seged:
-        if word not in stopWords:
-            if word != '\t':
-                outstr += word
-                outstr += " "
+    sentence_seged = jieba.cut(sentence,cut_all=False)
+    # print(sentence_seged)
+    # outstr = ''
+    # for word in sentence_seged:
+    #     if word not in stopWords:
+    #         if word != '\t':
+    #             outstr += word
+    #             outstr += " "
+    # if outstr == '':
+    outstr = ' '.join(sentence_seged)
+
+        # for word in sentence_seged:
+        #     outstr += word
+        #     outstr += " "
     return outstr
     
 # 读取数据生成新的字典
@@ -159,6 +167,7 @@ def train(filePath):
     myfile.close()
     print('训练完成')
 def filter_questionByInvertTab(inputQuestionKW, questionList, invertTable):
+    # print(invertTable)
     idxLst = []
     questionDict = {}
     for kw in inputQuestionKW:
@@ -172,26 +181,66 @@ def filter_questionByInvertTab(inputQuestionKW, questionList, invertTable):
 
 def top5results_invidx(inputQuestion,questionList,answerList,invertTable):
     inputQuestionKW = clean_words(inputQuestion)
+    if inputQuestionKW != '':
+        filteredQuestionDict = filter_questionByInvertTab(inputQuestionKW, questionList, invertTable)
+        # 计算相似度
+        simiVDict = calcaute_cosSimilarity(inputQuestion, filteredQuestionDict)
+        d = sorted(simiVDict, key=simiVDict.get, reverse=True)
+        #print(d)
+        # Top5最相似问题，及它们对应的答案
+        if len(d) == 0:
+                print('bot:不好意思，我没听懂')
+        if len(d) > 0:
+            if len(d) > 5:
+                index = random.randint(0,4)
+                idx = d[index]
+                print("bot:" + answerList[idx].rstrip('\n'))
+            if len(d) <= 5:
+                index = random.randint(0,len(d)-1)
+                idx = d[index]
+                print("bot:" + answerList[idx].rstrip('\n'))
+    else:
+        print('bot:能多说一些吗')
+# ### 6 基于词向量的文本表示
+def top5results_emb(inputQuestion,questionList,answerList,invertTable):
+    def get_vectorValue(keywordList):
+        s = datetime.datetime.now()
+        filePath = zh_vectorPath
+        vectorValueList = []
+        with open(filePath, 'r', encoding='UTF-8') as r:
+            for line in r.readlines():
+                tmpLst = line.rstrip('\n').split(" ")
+                word = tmpLst[0]
+                # print(tmpLst[1:])
+                if word in keywordList:
+                    vectorValueList.append([float(x) for x in tmpLst[1:]])
+        # 按关键词的平均，算句子的向量
+        vectorSum = np.sum(vectorValueList, axis=0)
+        e = datetime.datetime.now()
+        print('向量计算用时:',e-s)
+        return vectorSum / len(vectorValueList)
+    # print ('inputQuestionKW')
+    inputQuestionKW = clean_words(inputQuestion)
+    # input Question中的keywords
+    input_question_vector = get_vectorValue(inputQuestionKW)
+    print (input_question_vector)
+    simiVDict = {}
     filteredQuestionDict = filter_questionByInvertTab(inputQuestionKW, questionList, invertTable)
-    # 计算相似度
-    simiVDict = calcaute_cosSimilarity(inputQuestion, filteredQuestionDict)
+    # print ('filteredQuestionDict')
+    for idx, question in filteredQuestionDict.items():
+        # 取得当前问题的Vector值
+        filtered_question_vector = get_vectorValue(clean_words(question))
+        # 计算与输入问句的cos similarity
+        simiVDict[idx] = 1 - distance.cosine(input_question_vector, filtered_question_vector)
+        print(simiVDict[idx])
+    print ('multi')
     d = sorted(simiVDict, key=simiVDict.get, reverse=True)
-    #print(d)
-    # Top5最相似问题，及它们对应的答案
-    if len(d) == 0:
-            print('bot:没听懂')
-    if len(d) > 0:
-        if len(d) > 5:
-            index = random.randint(0,4)
-            idx = d[index]
-            print("bot:" + answerList[idx].strip('\n'))
-        if len(d) <= 5:
-            index = random.randint(0,len(d)-1)
-            idx = d[index]
-            print("bot:" + answerList[idx].strip('\n'))
-        
+    print(d)
+    # Top5最相似问题对应的答案
+    for idx in d[:5]:
+        print("bot:" + answerList[idx].rstrip('\n'))  
 if __name__ == "__main__":
-    if sys.argv[1] == 'train':
+    if sys.argv[1] == 'Train':
         train(filePath)
     else:
         questionList = readFile(questionListPath)
@@ -199,8 +248,16 @@ if __name__ == "__main__":
         myfile = open(invertTablePath,'rb')
         invertTable  = pickle.load(myfile)
         myfile.close()
+        # print(invertTable)
         while True:
             sys.stdout.write("> ")
             sys.stdout.flush()
             input_seq = sys.stdin.readline()
+            start = datetime.datetime.now()
             top5results_invidx(input_seq,questionList,answerList,invertTable)
+            end = datetime.datetime.now()
+            print ('回答用时:',end-start)
+            # start2 = datetime.datetime.now()
+            # top5results_emb(input_seq,questionList,answerList,invertTable)
+            # end2 = datetime.datetime.now()
+            # print ('回答用时:',end2-start2)
