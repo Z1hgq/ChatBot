@@ -38,7 +38,7 @@ def stopwordslist(filepath):
     return stopWords
 #预处理 数据清洗 停用词 小写 去标点
 def clean_words(sentence):
-    stopWords = stopwordslist('stopWords')
+    # stopWords = stopwordslist('stopWords')
     sentence_seged = jieba.cut(sentence,cut_all=False)
     # print(sentence_seged)
     # outstr = ''
@@ -68,7 +68,7 @@ def read_corpus(filePath):
         for line in f:
             if count % 2 == 0:
                 qList.append(line)
-                qList_kw.append(clean_words(line) + '\n')
+                qList_kw.append(clean_words(line))
             if count % 2 == 1:
                 aList.append(line)
             print(count)
@@ -154,7 +154,22 @@ def invert_idxTable(qList_kw):  # 定一个一个简单的倒排表
     print(invertTable)
     return invertTable
 # 计算倒排表
- 
+def get_vectorValue(keywordList):
+        s = datetime.datetime.now()
+        filePath = zh_vectorPath
+        vectorValueList = []
+        with open(filePath, 'r', encoding='UTF-8') as r:
+            for line in r.readlines():
+                tmpLst = line.rstrip('\n').split(" ")
+                word = tmpLst[0]
+                # print(tmpLst[1:])
+                if word in keywordList:
+                    vectorValueList.append([float(x) for x in tmpLst[1:]])
+        # 按关键词的平均，算句子的向量
+        vectorSum = np.sum(vectorValueList, axis=0)
+        e = datetime.datetime.now()
+        print('向量计算用时:',e-s)
+        return vectorSum / len(vectorValueList) 
 def train(filePath):
     # stopWords = stopwordslist('stopWords')
     read_corpus(filePath)
@@ -165,6 +180,19 @@ def train(filePath):
     myfile=open(invertTablePath,'wb')
     pickle.dump(invertTable,myfile)
     myfile.close()
+    print('-----------问题列表转向量-----------')
+    f_out = open('./data/questionListVec','w')
+    with open('./data/questionList') as f:
+        count = 0
+        for line in f:
+            if count > 4320:
+                strl = ''
+                for e in get_vectorValue(clean_words(line)):
+                    strl += str(e) + ' '
+                print('进度：',count,'/10000')
+                f_out.writelines(strl+'\n')
+            count += 1
+    f_out.close()
     print('训练完成')
 def filter_questionByInvertTab(inputQuestionKW, questionList, invertTable):
     # print(invertTable)
@@ -203,22 +231,6 @@ def top5results_invidx(inputQuestion,questionList,answerList,invertTable):
         print('bot:能多说一些吗')
 # ### 6 基于词向量的文本表示
 def top5results_emb(inputQuestion,questionList,answerList,invertTable):
-    def get_vectorValue(keywordList):
-        s = datetime.datetime.now()
-        filePath = zh_vectorPath
-        vectorValueList = []
-        with open(filePath, 'r', encoding='UTF-8') as r:
-            for line in r.readlines():
-                tmpLst = line.rstrip('\n').split(" ")
-                word = tmpLst[0]
-                # print(tmpLst[1:])
-                if word in keywordList:
-                    vectorValueList.append([float(x) for x in tmpLst[1:]])
-        # 按关键词的平均，算句子的向量
-        vectorSum = np.sum(vectorValueList, axis=0)
-        e = datetime.datetime.now()
-        print('向量计算用时:',e-s)
-        return vectorSum / len(vectorValueList)
     # print ('inputQuestionKW')
     inputQuestionKW = clean_words(inputQuestion)
     # input Question中的keywords
