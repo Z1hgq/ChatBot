@@ -12,6 +12,7 @@ import sys
 import random
 import pickle
 import datetime
+import heapq
 
 filePath = './data/xhj_data'
 questionListPath = './data/questionList'
@@ -19,6 +20,7 @@ answerListPath = './data/answerList'
 questionKeyListPath = './data/questionKeyList'
 invertTablePath = './data/invertTable.bin'
 zh_vectorPath = './data/zh_vec.txt'
+questionListVecPath = './data/questionListVec'
 
 #将数组写进文件
 def writeFile(filePath,arr):
@@ -155,7 +157,7 @@ def invert_idxTable(qList_kw):  # 定一个一个简单的倒排表
     return invertTable
 # 计算倒排表
 def get_vectorValue(keywordList):
-        s = datetime.datetime.now()
+        # s = datetime.datetime.now()
         filePath = zh_vectorPath
         vectorValueList = []
         with open(filePath, 'r', encoding='UTF-8') as r:
@@ -167,8 +169,8 @@ def get_vectorValue(keywordList):
                     vectorValueList.append([float(x) for x in tmpLst[1:]])
         # 按关键词的平均，算句子的向量
         vectorSum = np.sum(vectorValueList, axis=0)
-        e = datetime.datetime.now()
-        print('向量计算用时:',e-s)
+        # e = datetime.datetime.now()
+        # print('向量计算用时:',e-s)
         return vectorSum / len(vectorValueList) 
 def train(filePath):
     # stopWords = stopwordslist('stopWords')
@@ -181,16 +183,15 @@ def train(filePath):
     pickle.dump(invertTable,myfile)
     myfile.close()
     print('-----------问题列表转向量-----------')
-    f_out = open('./data/questionListVec','w')
-    with open('./data/questionList') as f:
+    f_out = open(questionListVecPath,'w')
+    with open(questionListPath) as f:
         count = 0
         for line in f:
-            if count > 4320:
-                strl = ''
-                for e in get_vectorValue(clean_words(line)):
-                    strl += str(e) + ' '
-                print('进度：',count,'/10000')
-                f_out.writelines(strl+'\n')
+            strl = ''
+            for e in get_vectorValue(clean_words(line)):
+                strl += str(e) + ' '
+            print('进度：',count,'/10000')
+            f_out.writelines(strl+'\n')
             count += 1
     f_out.close()
     print('训练完成')
@@ -230,27 +231,33 @@ def top5results_invidx(inputQuestion,questionList,answerList,invertTable):
     else:
         print('bot:能多说一些吗')
 # ### 6 基于词向量的文本表示
-def top5results_emb(inputQuestion,questionList,answerList,invertTable):
+def top5results_emb(inputQuestion,questionList,answerList,invertTable,vectorValueList):
     # print ('inputQuestionKW')
     inputQuestionKW = clean_words(inputQuestion)
     # input Question中的keywords
     input_question_vector = get_vectorValue(inputQuestionKW)
-    print (input_question_vector)
-    simiVDict = {}
-    filteredQuestionDict = filter_questionByInvertTab(inputQuestionKW, questionList, invertTable)
-    # print ('filteredQuestionDict')
-    for idx, question in filteredQuestionDict.items():
-        # 取得当前问题的Vector值
-        filtered_question_vector = get_vectorValue(clean_words(question))
-        # 计算与输入问句的cos similarity
-        simiVDict[idx] = 1 - distance.cosine(input_question_vector, filtered_question_vector)
-        print(simiVDict[idx])
-    print ('multi')
-    d = sorted(simiVDict, key=simiVDict.get, reverse=True)
-    print(d)
+    # print (input_question_vector)
+    simiVDict = []
+    # filteredQuestionDict = filter_questionByInvertTab(inputQuestionKW, questionList, invertTable)
+    # # print ('filteredQuestionDict')
+    # for idx, question in filteredQuestionDict.items():
+    #     # 取得当前问题的Vector值
+    #     filtered_question_vector = get_vectorValue(clean_words(question))
+    #     # 计算与输入问句的cos similarity
+    #     simiVDict[idx] = 1 - distance.cosine(input_question_vector, filtered_question_vector)
+    #     print(simiVDict[idx])
+    for questionVec in vectorValueList:
+        simiVDict.append(1 - distance.cosine(input_question_vector, questionVec))
+    index = map(simiVDict.index, heapq.nlargest(3, simiVDict)) #求最大的5个索引 
+    # print ('multi')
+    # d = sorted(simiVDict, key=simiVDict.get, reverse=True)
+    # print(d)
     # Top5最相似问题对应的答案
-    for idx in d[:5]:
-        print("bot:" + answerList[idx].rstrip('\n'))  
+    idx = random.randint(0,2)
+    i = list(index)[idx]
+    print("bot:" + answerList[i].rstrip('\n'))  
+    # for idx in list(index):
+    #     print("bot:" + answerList[idx].rstrip('\n'))  
 if __name__ == "__main__":
     if sys.argv[1] == 'Train':
         train(filePath)
@@ -260,16 +267,21 @@ if __name__ == "__main__":
         myfile = open(invertTablePath,'rb')
         invertTable  = pickle.load(myfile)
         myfile.close()
+        vectorValueList = []
+        with open(questionListVecPath) as f:
+            for line in f.readlines():
+                tmpLst = line.rstrip(' \n').split(" ")
+                vectorValueList.append([float(x) for x in tmpLst])
         # print(invertTable)
         while True:
             sys.stdout.write("> ")
             sys.stdout.flush()
             input_seq = sys.stdin.readline()
-            start = datetime.datetime.now()
-            top5results_invidx(input_seq,questionList,answerList,invertTable)
-            end = datetime.datetime.now()
-            print ('回答用时:',end-start)
-            # start2 = datetime.datetime.now()
-            # top5results_emb(input_seq,questionList,answerList,invertTable)
-            # end2 = datetime.datetime.now()
-            # print ('回答用时:',end2-start2)
+            # start = datetime.datetime.now()
+            # top5results_invidx(input_seq,questionList,answerList,invertTable)
+            # end = datetime.datetime.now()
+            # print ('回答用时:',end-start)
+            start2 = datetime.datetime.now()
+            top5results_emb(input_seq,questionList,answerList,invertTable,vectorValueList)
+            end2 = datetime.datetime.now()
+            print ('回答用时:',end2-start2)
