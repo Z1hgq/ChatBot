@@ -7,6 +7,7 @@ python demo.py train
 
 
 进入retrieval目录，对话数据为main.py中的filePath，单行为问题 双行为答案
+
 训练:`python3 main.py Train`
 
 预测:`python3 main.py predict`
