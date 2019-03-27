@@ -13,6 +13,7 @@ import random
 import pickle
 import datetime
 import heapq
+import gensim.models as g
 
 filePath = './data/xhj_data'
 questionListPath = './data/questionList'
@@ -21,6 +22,7 @@ questionKeyListPath = './data/questionKeyList'
 invertTablePath = './data/invertTable.bin'
 zh_vectorPath = './data/zh_vec.txt'
 questionListVecPath = './data/questionListVec'
+vecTestPath = './data/vecTest'
 
 #将数组写进文件
 def writeFile(filePath,arr):
@@ -258,6 +260,15 @@ def top5results_emb(inputQuestion,questionList,answerList,invertTable,vectorValu
     print("bot:" + answerList[i].rstrip('\n'))  
     # for idx in list(index):
     #     print("bot:" + answerList[idx].rstrip('\n'))  
+def testVec_out(inputQuestion,answerList,vectorValueList,model):
+    input_question_vector = model.infer_vector(inputQuestion.split())
+    simiVDict = []
+    for questionVec in vectorValueList:
+        simiVDict.append(1 - distance.cosine(input_question_vector, questionVec))
+    index = map(simiVDict.index, heapq.nlargest(3, simiVDict)) #求最大的5个索引 
+    idx = random.randint(0,2)
+    i = list(index)[idx]
+    print("bot:" + answerList[i].rstrip('\n'))  
 if __name__ == "__main__":
     if sys.argv[1] == 'Train':
         train(filePath)
@@ -273,6 +284,7 @@ if __name__ == "__main__":
                 tmpLst = line.rstrip(' \n').split(" ")
                 vectorValueList.append([float(x) for x in tmpLst])
         # print(invertTable)
+        # model = g.Doc2Vec.load('./models/ko_d2v.model')
         while True:
             sys.stdout.write("> ")
             sys.stdout.flush()
@@ -285,3 +297,7 @@ if __name__ == "__main__":
             top5results_emb(input_seq,questionList,answerList,invertTable,vectorValueList)
             end2 = datetime.datetime.now()
             print ('回答用时:',end2-start2)
+            # start3 = datetime.datetime.now()
+            # testVec_out(input_seq,answerList,vectorValueList,model)
+            # end3 = datetime.datetime.now()
+            # print ('回答用时:',end3-start3)
