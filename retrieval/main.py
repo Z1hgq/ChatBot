@@ -233,7 +233,7 @@ def top5results_invidx(inputQuestion,questionList,answerList,invertTable):
     else:
         print('bot:能多说一些吗')
 # ### 6 基于词向量的文本表示
-def top5results_emb(inputQuestion,questionList,answerList,invertTable,vectorValueList):
+def top5results_emb(inputQuestion,questionList,answerList,vectorValueList):
     # print ('inputQuestionKW')
     inputQuestionKW = clean_words(inputQuestion)
     # input Question中的keywords
@@ -258,6 +258,7 @@ def top5results_emb(inputQuestion,questionList,answerList,invertTable,vectorValu
     # idx = random.randint(0,2)
     i = list(index)[0]
     print("bot:" + answerList[i].rstrip('\n'))  
+    return answerList[i].rstrip('\n')
     # for idx in list(index):
     #     print("bot:" + answerList[idx].rstrip('\n'))  
 def testVec_out(inputQuestion,answerList,vectorValueList,model):
@@ -275,9 +276,9 @@ if __name__ == "__main__":
     else:
         questionList = readFile(questionListPath)
         answerList = readFile(answerListPath)
-        myfile = open(invertTablePath,'rb')
-        invertTable  = pickle.load(myfile)
-        myfile.close()
+        # myfile = open(invertTablePath,'rb')
+        # invertTable  = pickle.load(myfile)
+        # myfile.close()
         vectorValueList = []
         with open(questionListVecPath) as f:
             for line in f.readlines():
@@ -294,7 +295,7 @@ if __name__ == "__main__":
             # end = datetime.datetime.now()
             # print ('回答用时:',end-start)
             start2 = datetime.datetime.now()
-            top5results_emb(input_seq,questionList,answerList,invertTable,vectorValueList)
+            top5results_emb(input_seq,questionList,answerList,vectorValueList)
             end2 = datetime.datetime.now()
             print ('回答用时:',end2-start2)
             # start3 = datetime.datetime.now()
