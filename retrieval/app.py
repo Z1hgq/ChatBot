@@ -17,21 +17,21 @@ def heartbeat():
     print (time.strftime('%Y-%m-%d %H:%M:%S - heartbeat', time.localtime(time.time())))
     timer = threading.Timer(60, heartbeat)
     timer.start()
-# start = datetime.datetime.now()
+start = datetime.datetime.now()
 timer = threading.Timer(60, heartbeat)
 timer.start()
-# questionListPath = './data/questionList'
-# answerListPath = './data/answerList'
-# questionListVecPath = './data/questionListVec'
-# questionList = readFile(questionListPath)
-# answerList = readFile(answerListPath)
-# vectorValueList = []
-# with open(questionListVecPath) as f:
-#     for line in f.readlines():
-#         tmpLst = line.rstrip(' \n').split(" ")
-#         vectorValueList.append([float(x) for x in tmpLst])
-# end = datetime.datetime.now()
-# print('时间:',end-start)
+questionListPath = './data/questionList'
+answerListPath = './data/answerList'
+questionListVecPath = './data/questionListVec'
+questionList = readFile(questionListPath)
+answerList = readFile(answerListPath)
+vectorValueList = []
+with open(questionListVecPath) as f:
+    for line in f.readlines():
+        tmpLst = line.rstrip(' \n').split(" ")
+        vectorValueList.append([float(x) for x in tmpLst])
+end = datetime.datetime.now()
+print('时间:',end-start)
 def get_response(req):
     return top5results_emb(req,questionList,answerList,vectorValueList)
 try:  
