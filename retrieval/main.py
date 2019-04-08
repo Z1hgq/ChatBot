@@ -26,7 +26,7 @@ vecTestPath = './data/vecTest'
 
 #将数组写进文件
 def writeFile(filePath,arr):
-    with open(filePath,'w') as f:
+    with open(filePath,'w',encoding='utf-8') as f:
         for line in arr:
             f.writelines(line)
 #将文件转成数组
@@ -68,7 +68,7 @@ def read_corpus(filePath):
     # 答案列表
     aList = []
     count = 0
-    with open(filePath) as f:
+    with open(filePath,encoding='utf-8') as f:
         for line in f:
             if count % 2 == 0:
                 qList.append(line)
@@ -185,14 +185,14 @@ def train(filePath):
     pickle.dump(invertTable,myfile)
     myfile.close()
     print('-----------问题列表转向量-----------')
-    f_out = open(questionListVecPath,'w')
-    with open(questionListPath) as f:
+    f_out = open(questionListVecPath,'w',encoding='utf-8')
+    with open(questionListPath,encoding='utf-8') as f:
         count = 0
         for line in f:
             strl = ''
             for e in get_vectorValue(clean_words(line)):
                 strl += str(e) + ' '
-            print('进度：',count,'/10000')
+            print('进度：',count,'/100000')
             f_out.writelines(strl+'\n')
             count += 1
     f_out.close()
@@ -250,17 +250,40 @@ def top5results_emb(inputQuestion,questionList,answerList,vectorValueList):
     #     print(simiVDict[idx])
     for questionVec in vectorValueList:
         simiVDict.append(1 - distance.cosine(input_question_vector, questionVec))
-    index = map(simiVDict.index, heapq.nlargest(3, simiVDict)) #求最大的3个索引 
+    index = map(simiVDict.index, heapq.nlargest(3, simiVDict)) #求最大的5个索引 
     # print ('multi')
     # d = sorted(simiVDict, key=simiVDict.get, reverse=True)
     # print(d)
     # Top5最相似问题对应的答案
     # idx = random.randint(0,2)
-    i = list(index)[0]
-    print("bot:" + answerList[i].rstrip('\n'))  
-    return answerList[i].rstrip('\n')
+    # i1 = list(index)[0]
+    # print('similarity:',simiVDict[i1])
+    # print("bot:" + answerList[i1].rstrip('\n'))  
+    # i2 = list(index)[1]
+    # print('similarity:',simiVDict[i2])
+    # print("bot:" + answerList[i2].rstrip('\n'))
+    # i3 = list(index)[2]
+    # print('similarity:',simiVDict[i3])
+    # print("bot:" + answerList[i3].rstrip('\n'))
+    # for i in list(index):
+    #     print('similarity:',simiVDict[i])
+    #     print("question:" + questionList[i].rstrip('\n'))
+    #     print("bot:" + answerList[i].rstrip('\n'))
+    k = list(index)[0]
+    return [ questionList[k].rstrip('\n'),answerList[k].rstrip('\n'),simiVDict[k]]
     # for idx in list(index):
-    #     print("bot:" + answerList[idx].rstrip('\n'))  
+    #     print("bot:" + answerList[idx].rstrip('\n'))
+# ### 6 基于词向量的文本表示
+def top5results_emb_model(inputQuestion,answerList,vectorValueList,model):
+    input_question_vector =  model.infer_vector(inputQuestion.split())
+    simiVDict = []
+    for questionVec in vectorValueList:
+        simiVDict.append(1 - distance.cosine(input_question_vector, questionVec))
+    index = map(simiVDict.index, heapq.nlargest(3, simiVDict)) #求最大的5个索引 
+    i = list(index)[0]
+    print('similarity:',simiVDict[i])
+    print("bot:" + answerList[i].rstrip('\n'))  
+
 def testVec_out(inputQuestion,answerList,vectorValueList,model):
     input_question_vector = model.infer_vector(inputQuestion.split())
     simiVDict = []
@@ -280,7 +303,7 @@ if __name__ == "__main__":
         # invertTable  = pickle.load(myfile)
         # myfile.close()
         vectorValueList = []
-        with open(questionListVecPath) as f:
+        with open(questionListVecPath,encoding='utf-8') as f:
             for line in f.readlines():
                 tmpLst = line.rstrip(' \n').split(" ")
                 vectorValueList.append([float(x) for x in tmpLst])
@@ -295,7 +318,7 @@ if __name__ == "__main__":
             # end = datetime.datetime.now()
             # print ('回答用时:',end-start)
             start2 = datetime.datetime.now()
-            top5results_emb(input_seq,questionList,answerList,vectorValueList)
+            print(top5results_emb(input_seq,questionList,answerList,vectorValueList))
             end2 = datetime.datetime.now()
             print ('回答用时:',end2-start2)
             # start3 = datetime.datetime.now()

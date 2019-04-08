@@ -17,6 +17,17 @@ vec2 = model.infer_vector(words.split())
 
 print(1 - distance.cosine(vec1, vec2))
 
+fout = open('./testData/questionListVec','w',encoding='utf-8')
+count = 0
+with open('./data/questionList',encoding='utf-8') as f:
+    for line in f:
+        strl = ''
+        for e in model.infer_vector(line.rstrip('\n').split()):
+            strl += str(e) + ' '
+        fout.writelines(strl+'\n')
+        print(count)
+        count += 1
+fout.close()
 
 # f_out = open('./data/vecTest','w')
 # with open('./data/questionList', 'r', encoding='UTF-8') as r:

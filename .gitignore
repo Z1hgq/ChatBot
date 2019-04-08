@@ -10,3 +10,4 @@ data/questionKeyList
 retrieval/data
 retrieval/models
 retrieval/scripts/questionListVec
+retrieval/static/photo
