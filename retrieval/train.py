@@ -8,15 +8,15 @@ from main import clean_words
 
 def cut_sentence():
     count = 0
-    f_out = open('./data/qy_cut','w',encoding='utf-8')
-    with open('./data/QingYun',encoding='utf-8') as f_in:
+    f_out = open('./data/xhj_cut','w',encoding='utf-8')
+    with open('./data/xiaohuangji',encoding='utf-8') as f_in:
         for line in f_in:
             print(clean_words(line))
             f_out.writelines(str(clean_words(line)))
             print(count)
             count += 1
     f_out.close()
-cut_sentence()
+# cut_sentence()
 TaggededDocument = gensim.models.doc2vec.TaggedDocument
 def X_train(cut_sentence):
     x_train = []
@@ -28,7 +28,7 @@ def X_train(cut_sentence):
         x_train.append(document)
     return x_train
 sentences = []
-with open('./data/qy_cut',encoding='utf-8') as f:
+with open('./data/xhj_cut',encoding='utf-8') as f:
     for line in f:
         sentences.append(line.rstrip(' \n'))
 # print(X_train(sentences))
@@ -40,7 +40,7 @@ def train(x_train):
 
 model_dm = train(X_train(sentences))
 
-model_dm.save('models/ko_d2v.model')
+model_dm.save('models/xhj.model')
 
 # strl = '木兰当户织'
 # test_text = strl.split(' ')

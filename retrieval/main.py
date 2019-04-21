@@ -14,14 +14,15 @@ import pickle
 import datetime
 import heapq
 import gensim.models as g
+import config
 
 filePath = './data/QingYun'
-questionListPath = './data/questionList'
-answerListPath = './data/answerList'
+questionListPath = config.questionListPath
+answerListPath = config.answerListPath
 questionKeyListPath = './data/questionKeyList'
 invertTablePath = './data/invertTable.bin'
-zh_vectorPath = './data/QingYun_zh_vec.txt'
-questionListVecPath = './data/questionListVec'
+zh_vectorPath = config.zh_vectorPath
+questionListVecPath = config.questionListVecPath
 vecTestPath = './data/vecTest'
 
 #将数组写进文件
