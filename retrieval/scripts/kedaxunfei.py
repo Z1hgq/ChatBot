@@ -41,5 +41,5 @@ def xfstt(wav):
     result = urllib.request.urlopen(req)
     result = result.read().decode('utf-8')
     print(result)
-    return result
+    return result['data']
  

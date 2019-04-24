@@ -6,6 +6,8 @@ from itchat.content import *
 import os
 from pydub import AudioSegment
 from kedaxunfei import xfstt
+import io
+import wave
 
 def get_response_tuling(msg):
     # 这里我们就像在“3. 实现最简单的与图灵机器人的交互”中做的一样
@@ -29,13 +31,28 @@ def get_response_tuling(msg):
 def asr(msg):
     #语音消息识别转文字输出
     msg['Text'](msg['FileName'])
-    path = './' + str(msg['FileName'])
+    path = str(msg['FileName'])
     print(path)
-    song = AudioSegment.from_mp3(path)
-    song.export("tmp.wav", format="wav")
+    #先从本地获取mp3的bytestring作为数据样本
+    fp=open(path,'rb')
+    data=fp.read()
+    fp.close()
+    #主要部分
+    aud=io.BytesIO(data)
+    AudioSegment.converter = r"F:\\ffmpeg-20190422-eeca67e-win64-static\\ffmpeg-20190422-eeca67e-win64-static\\bin\\ffmpeg.exe"
+    sound=AudioSegment.from_file(aud,format='mp3')
+    raw_data = sound._data
+    #写入到文件，验证结果是否正确。
+    l=len(raw_data)
+    f=wave.open("tmp.wav",'wb')
+    f.setnchannels(1)
+    f.setsampwidth(2)
+    f.setframerate(16000)
+    f.setnframes(l)
+    f.writeframes(raw_data)
+    f.close()
     os.remove(msg['FileName'])
-    return 'speech'
-    # return xfstt('tmp.wav')
+    return xfstt('tmp.wav')
 
 @itchat.msg_register(TEXT)#因为之前把itchat.content全部import了，里面有TEXT变量
 def tuling_reply_text(msg):
@@ -57,5 +74,5 @@ def tuling_reply(msg):
     # return defaultReply
 
 # 为了让实验过程更加方便（修改程序不用多次扫码），我们使用热启动hotReload=True
-itchat.auto_login(hotReload=True)
+itchat.auto_login(hotReload=True,enableCmdQR=2)
 itchat.run()
