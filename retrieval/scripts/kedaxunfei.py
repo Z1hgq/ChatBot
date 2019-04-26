@@ -23,7 +23,7 @@ def xfstt(wav):
     url = 'http://api.xfyun.cn/v1/service/v1/iat'
     api_key = 'bf7290edfbff63eff178d0247c6c89c8'
     param = {"engine_type": "sms16k", "aue": "raw"}
- 
+
     x_appid = '5cbc07b9'
     x_param = base64.b64encode(json.dumps(param).replace(' ', '').encode('utf-8')) #改('''')
     # 这是3.x的用法，因为3.x中字符都为unicode编码，而b64encode函数的参数为byte类型，

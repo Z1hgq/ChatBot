@@ -29,5 +29,5 @@ def text_rreply(msg):
     #     msg.user.send(u'@%s\u2005I received: %s' % (
     #         msg.actualNickName, msg.text))
 
-itchat.auto_login(hotReload=True,enableCmdQR=2)
+itchat.auto_login(hotReload=True,enableCmdQR=1)
 itchat.run(True)
