@@ -174,7 +174,7 @@ def invert_idxTable(qList_kw):  # 定一个一个简单的倒排表
                 invertTable[kw] = [idx]
     print(invertTable)
     return invertTable
-# 计算倒排表
+
 def get_vectorValue(keywordList):
         # s = datetime.datetime.now()
         filePath = zh_vectorPath
@@ -214,6 +214,7 @@ def train(filePath):
             count += 1
     f_out.close()
     print('训练完成')
+# 计算倒排表
 def filter_questionByInvertTab(inputQuestionKW, questionList, invertTable):
     # print(invertTable)
     idxLst = []
