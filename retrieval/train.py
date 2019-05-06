@@ -41,18 +41,3 @@ def train(x_train):
 model_dm = train(X_train(sentences))
 
 model_dm.save('models/xhj.model')
-
-# strl = '木兰当户织'
-# test_text = strl.split(' ')
-
-# inferred_vector = model_dm.infer_vector(doc_words=test_text,alpha=0.025,steps=500)
-
-# sims = model_dm.docvecs.most_similar([inferred_vector],topn=10)
-
-# for count,sim in sims:
-#     print(count,sim)
-#     sentence = sentences[count].strip(' ')
-#     words = ''
-#     for word in sentence:
-#         words = words+word
-#     print(words,sim,len(sentence))

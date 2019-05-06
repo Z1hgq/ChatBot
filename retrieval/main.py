@@ -62,19 +62,12 @@ def clean_words(sentence):
 def cut_sentence(sentence):
     stopWords = stopwordslist('stopWords')
     sentence_seged = jieba.cut(sentence,cut_all=False)
-    # print(sentence_seged)
     outstr = ''
     for word in sentence_seged:
         if word not in stopWords:
             if word != '\t':
                 outstr += word
                 outstr += " "
-    # if outstr == '':
-    # outstr = ' '.join(sentence_seged)
-
-        # for word in sentence_seged:
-        #     outstr += word
-        #     outstr += " "
     return outstr
 # 读取数据生成新的字典
 def read_corpus(filePath):
